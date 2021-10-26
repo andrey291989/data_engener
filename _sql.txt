@@ -1,0 +1,78 @@
+﻿#####1#####
+SELECT count(*) as CustomerCountDistinct FROM customer;
+
+#####2#####
+SELECT country_name, COUNT(*) AS CustomerCountDistinct
+FROM
+	(SELECT countries.country_name, countries.country_code
+	FROM customer
+	inner JOIN
+	countries
+	on customer.country_code = countries.country_code) as all_val
+WHERE country_code = 250 or country_code = 380
+GROUP by country_name
+ORDER BY CustomerCountDistinct;
+
+#####3#####
+select customer_name, sum(all_prise) as Revenue
+from
+  (SELECT customer.customer_name, (orders.quantity * items.item_price) as all_prise
+  from customer
+  inner JOIN orders
+    on customer.customer_id = orders.customer_id
+  inner join items
+    on orders.item_id = items.item_id) as tb
+group by customer_name
+order by Revenue desc
+limit 10;
+
+#####4#####
+select country_name, sum(all_prise) as RevenuePerCountry
+from
+  (SELECT countries.country_name, (orders.quantity * items.item_price) as all_prise
+  FROM customer
+  LEFT JOIN orders
+      on customer.customer_id = orders.customer_id
+  inner JOIN countries
+      on customer.country_code = Countries.country_code
+  left join items
+      on orders.item_id = items.item_id) as tb_country
+group by country_name
+order by RevenuePerCountry desc;
+
+#####5#####
+select customer_id, customer_name, max(price) as mx
+from
+  (SELECT customer.customer_id, customer.customer_name, items.item_name, (orders.quantity * items.item_price) as price
+  from customer
+  inner JOIN orders
+    on customer.customer_id = orders.customer_id
+  inner join items
+    on orders.item_id = items.item_id) as tb
+GROUP by customer_id, customer_name
+order by mx;
+
+#####6#####
+SELECT date_part('month', date_time) as Month, (orders.quantity * items.item_price) as Total_Revenue
+from customer
+inner JOIN orders
+	on customer.customer_id = orders.customer_id
+inner join items
+    on orders.item_id = items.item_id;
+
+#####7#####
+SELECT Total_Revenue_MENA
+from (SELECT *, (orders.quantity * items.item_price) as Total_Revenue_MENA
+from customer
+inner JOIN orders
+	on customer.customer_id = orders.customer_id
+inner join items
+    on orders.item_id = items.item_id
+INNER join countries
+	on customer.country_code = countries.country_code) as tb
+WHERE country_zone = 'MENA';
+
+#####8#####
+SELECT date_time, item_id, customer_id, count(*) FROM orders
+GROUP by date_time, item_id, customer_id
+HAVING count(*) > 1;
